@@ -1,0 +1,10 @@
+swiftmq-plugin
+Copyright 2026 houzch
+
+Licensed under the Apache License, Version 2.0.
+See the LICENSE file for the full license text.
+
+-------------------------------------------------------------------------------
+This project provides reference implementations of the SwiftMQ external-process
+plugin ("sidecar") wire protocol. The protocol itself is defined by the SwiftMQ
+broker (see https://github.com/houzch/swiftmq, package pkg/sidecar).

@@ -1,0 +1,25 @@
+# 构建与运行产物（示例本身零依赖，这里只忽略各语言编译/运行时会生成的目录）
+
+# Java
+*.class
+classes/
+
+# Python
+__pycache__/
+*.pyc
+
+# Node.js
+node_modules/
+
+# PHP
+vendor/
+
+# Go（示例的构建产物；go.sum 由 `go mod tidy` 生成，建议提交）
+/go/go-sidecar
+/go/go-sidecar.exe
+
+# 编辑器 / 系统
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
