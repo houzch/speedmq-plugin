@@ -1,4 +1,4 @@
-// SwiftMQ 外部进程插件（sidecar）示例 —— Java 实现（仅标准库，无需 Maven/Gradle）。
+// SpeedMQ 外部进程插件（sidecar）示例 —— Java 实现（仅标准库，无需 Maven/Gradle）。
 //
 // 它实现 sidecar 线协议的插件侧（对应 `pkg/sidecar` 里的 Server 角色）：
 // 内核是客户端、本进程是服务端；只监听一个本机地址，等内核来连。
@@ -16,7 +16,7 @@
 // 用法（JDK 11+ 可直接运行单文件源码）：
 //   java SidecarPlugin.java --addr 0.0.0.0:19031 --name java-sidecar --session-demo
 //
-// 配套文档：swiftmq/docs/plugin-development-java.md
+// 配套文档：speedmq/docs/plugin-development-java.md
 
 import java.io.DataInputStream;
 import java.io.IOException;

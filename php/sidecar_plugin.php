@@ -1,5 +1,5 @@
 <?php
-// SwiftMQ 外部进程插件（sidecar）示例 —— PHP 实现（仅标准库，无 composer 依赖）。
+// SpeedMQ 外部进程插件（sidecar）示例 —— PHP 实现（仅标准库，无 composer 依赖）。
 //
 // 它实现 sidecar 线协议的插件侧（对应 `pkg/sidecar` 里的 Server 角色）：
 // 内核是客户端、本进程是服务端；只监听一个本机地址，等内核来连。
@@ -17,7 +17,7 @@
 // 用法：
 //   php sidecar_plugin.php --addr 0.0.0.0:19021 --name php-sidecar --session-demo
 //
-// 配套文档：swiftmq/docs/plugin-development-php.md
+// 配套文档：speedmq/docs/plugin-development-php.md
 
 declare(strict_types=1);
 

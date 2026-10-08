@@ -1,8 +1,8 @@
-# swiftmq-plugin
+# speedmq-plugin
 
-SwiftMQ **外部进程插件（sidecar）** 的参考实现集合 —— 5 种语言，**零第三方依赖**，全部实测跑通。
+SpeedMQ **外部进程插件（sidecar）** 的参考实现集合 —— 5 种语言，**零第三方依赖**，全部实测跑通。
 
-> 用途：不改内核、不重编内核，用**任意语言**给 [SwiftMQ](https://github.com/houzch/swiftmq) 扩展协议能力。
+> 用途：不改内核、不重编内核，用**任意语言**给 [SpeedMQ](https://github.com/houzch/speedmq) 扩展协议能力。
 > 每个示例都完整走通：**握手 → 认证 → 内核语义桥（队列/发布/消费）→ 投递回推 → 结算 → 客户端字节流回显**。
 
 [English](README.en.md) | 简体中文
@@ -16,7 +16,7 @@ SwiftMQ **外部进程插件（sidecar）** 的参考实现集合 —— 5 种�
 | **是** | sidecar 线协议的**插件侧**参考实现（Python / Node.js / PHP / Java / Go），可直接当模板改 |
 | **是** | Python / Node.js / PHP / Java 四份**从零实现了线协议**（分帧、握手、心跳、逻辑流、反向调用），因此也可以当协议规格读 |
 | **是** | Go 一份基于**官方 SDK**（`pkg/sidecar`），只要实现三个方法 —— 演示"有 SDK 时能有多短" |
-| **不是** | SwiftMQ 本体。插件要跑起来，内核侧必须按配置"声明"它（见下文） |
+| **不是** | SpeedMQ 本体。插件要跑起来，内核侧必须按配置"声明"它（见下文） |
 | **不是** | 官方内核插件。内核内置协议插件（AMQP 0-9-1 / MQTT）不走这套机制 |
 
 ---
@@ -24,7 +24,7 @@ SwiftMQ **外部进程插件（sidecar）** 的参考实现集合 —— 5 种�
 ## 目录结构
 
 ```
-swiftmq-plugin/
+speedmq-plugin/
 ├── python/sidecar_plugin.py     # Python 3（仅标准库）
 ├── nodejs/index.js              # Node.js（仅标准库，无 npm 依赖）
 ├── php/sidecar_plugin.php       # PHP 7.4+（仅标准库，无 composer 依赖）
@@ -53,7 +53,7 @@ python3 python/sidecar_plugin.py -addr 0.0.0.0:19001 -name py-sidecar -session-d
 
 ### 2. 内核侧：声明插件
 
-在 SwiftMQ 配置文件（`swiftmqd.json`）里加一段。注意 `address` 用
+在 SpeedMQ 配置文件（`speedmqd.json`）里加一段。注意 `address` 用
 `host.docker.internal`（Docker Desktop 提供的"宿主机"域名），`spawn` 留空
 （进程已经由你自己起好，内核只连不拉）：
 
@@ -94,9 +94,9 @@ python3 python/sidecar_plugin.py -addr 0.0.0.0:19001 -name py-sidecar -session-d
 ### 3. 起内核（容器）
 
 ```bash
-docker run -d --name swiftmq -p 5672:5672 -p 15672:15672 -p 19002:19002 \
-  -v "$PWD/swiftmqd.json:/etc/swiftmq/swiftmqd.json:ro" houzch/swiftmq:1.1.01 \
-  -config /etc/swiftmq/swiftmqd.json -log-level info
+docker run -d --name speedmq -p 5672:5672 -p 15672:15672 -p 19002:19002 \
+  -v "$PWD/speedmqd.json:/etc/speedmq/speedmqd.json:ro" houzch/speedmq:1.1.01 \
+  -config /etc/speedmq/speedmqd.json -log-level info
 ```
 
 ### 4. 验证
@@ -118,13 +118,13 @@ printf 'PYhello\n' | nc 127.0.0.1 19002
 若要让内核自己把插件拉起来（`spawn`），插件可执行文件与运行时必须**在内核容器里**：
 
 ```dockerfile
-FROM houzch/swiftmq:1.1.01
+FROM houzch/speedmq:1.1.01
 
 USER root
 # 运行插件需要该语言的运行时；alpine 基础镜像默认没有
 RUN apk add --no-cache python3
-COPY python/sidecar_plugin.py /opt/swiftmq-plugin/python/sidecar_plugin.py
-USER swiftmq
+COPY python/sidecar_plugin.py /opt/speedmq-plugin/python/sidecar_plugin.py
+USER speedmq
 ```
 
 对应配置改成进程内地址 + `spawn`：
@@ -132,7 +132,7 @@ USER swiftmq
 ```json
 "sidecar": {
   "address": "tcp://127.0.0.1:19001",
-  "spawn": ["python3", "/opt/swiftmq-plugin/python/sidecar_plugin.py",
+  "spawn": ["python3", "/opt/speedmq-plugin/python/sidecar_plugin.py",
             "-addr", "0.0.0.0:19001", "-name", "py-sidecar"],
   "protocols": [{ "name": "pyecho", "prefix": "PY",
                   "listeners": [{ "name": "pyecho", "addr": ":19002" }] }]
@@ -164,15 +164,15 @@ USER swiftmq
 | Java | 每连接一个读线程 + 每流一个处理线程 | JDK 无 JSON API（示例自带极简实现）；源码注释里也不能出现 `\uXXXX`；lambda 捕获需 effectively final |
 | Go | goroutine（每条流一个）+ SDK 内部多路复用 | **用官方 SDK，不必手写分帧/握手/心跳**：只实现 `sidecar.Handler` 的三个方法（`Hello` / `Call` / `Open`） |
 
-> **为什么只有 Go 示例这么短**：SwiftMQ 是 Go 项目，因此有官方 SDK
-> [`pkg/sidecar`](https://github.com/houzch/swiftmq/tree/master/pkg/sidecar)（服务端角色）。
+> **为什么只有 Go 示例这么短**：SpeedMQ 是 Go 项目，因此有官方 SDK
+> [`pkg/sidecar`](https://github.com/houzch/speedmq/tree/master/pkg/sidecar)（服务端角色）。
 > 其它语言没有 SDK，所以那四份示例各自实现了线协议 —— 也正因如此，把那四份**当协议规格读**最直观。
 >
-> Go 示例需要能取到 swiftmq 模块（`go mod tidy` 会去拉 `github.com/houzch/swiftmq`）。
-> 离线/内网环境下，用 `go work` 或 `replace` 指向本地的 swiftmq 克隆即可：
+> Go 示例需要能取到 speedmq 模块（`go mod tidy` 会去拉 `github.com/houzch/speedmq`）。
+> 离线/内网环境下，用 `go work` 或 `replace` 指向本地的 speedmq 克隆即可：
 >
 > ```
-> go mod edit -replace github.com/houzch/swiftmq=<本地 swiftmq 目录>
+> go mod edit -replace github.com/houzch/speedmq=<本地 speedmq 目录>
 > ```
 
 ---
@@ -260,11 +260,11 @@ len = 1 + len(payload)（含 kind 字节）；单帧上限 16 MiB。
 ## 实测记录
 
 示例不是"看起来能跑"——下面这些链路都在本机真实执行过（详见各语言文件头部注释与
-[上游分语言文档](https://github.com/houzch/swiftmq/tree/master/docs)）：
+[上游分语言文档](https://github.com/houzch/speedmq/tree/master/docs)）：
 
 ```
 环境：Windows + Python 3.12 / Node 24 / PHP 7.4 / JDK 25 / Go 1.24
-内核：SwiftMQ 1.1.01（Docker 容器），插件：宿主机进程（内核经 host.docker.internal 连接）
+内核：SpeedMQ 1.1.01（Docker 容器），插件：宿主机进程（内核经 host.docker.internal 连接）
 
 /api/plugins → <插件名> state=enabled
 客户端          printf 'PYhello\n' | nc 127.0.0.1 <内核端口>   → 回显 PYhello
@@ -293,8 +293,8 @@ len = 1 + len(payload)（含 kind 字节）；单帧上限 16 MiB。
 
 ## 与上游的关系 / 进一步阅读
 
-- **SwiftMQ 内核**：<https://github.com/houzch/swiftmq> —— 线协议的权威定义在 `pkg/sidecar`。
-- **插件 SDK**（Go）：`github.com/houzch/swiftmq/pkg/sidecar`（插件侧服务端）+ `pkg/plugin`（插件契约）。
+- **SpeedMQ 内核**：<https://github.com/houzch/speedmq> —— 线协议的权威定义在 `pkg/sidecar`。
+- **插件 SDK**（Go）：`github.com/houzch/speedmq/pkg/sidecar`（插件侧服务端）+ `pkg/plugin`（插件契约）。
   本仓库的 [`go/main.go`](go/main.go) 就是用它写的。
 - **分语言开发指南**（上游 `docs/`）：`plugin-development.md`（总览 + 协议规格）、
   `plugin-development-python.md` / `-nodejs.md` / `-php.md` / `-java.md`。

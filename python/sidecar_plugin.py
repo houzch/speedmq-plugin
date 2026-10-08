@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""SwiftMQ 外部进程插件（sidecar）示例 —— Python 实现（仅标准库）。
+"""SpeedMQ 外部进程插件（sidecar）示例 —— Python 实现（仅标准库）。
 
 它实现 sidecar 线协议的插件侧（对应 `pkg/sidecar` 里的 Server 角色）：
 内核是客户端、本进程是服务端；只监听一个本机地址，等内核来连。
@@ -14,7 +14,7 @@
 用法（通常由内核按配置 spawn，也可手动起）：
     python sidecar_plugin.py -addr 0.0.0.0:19001 -name py-sidecar -session-demo
 
-配套文档：swiftmq/docs/plugin-development-python.md
+配套文档：speedmq/docs/plugin-development-python.md
 """
 
 from __future__ import annotations
@@ -298,7 +298,7 @@ def _serve_conn(conn: socket.socket, args: argparse.Namespace) -> None:
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description="SwiftMQ 外部进程插件示例（Python）")
+    parser = argparse.ArgumentParser(description="SpeedMQ 外部进程插件示例（Python）")
     parser.add_argument("-addr", default="0.0.0.0:19001", help="监听地址 host:port")
     parser.add_argument("-name", default="py-sidecar", help="插件名（须与内核配置一致）")
     parser.add_argument("-session-demo", action="store_true", help="每条流演示内核语义桥")

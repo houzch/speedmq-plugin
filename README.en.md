@@ -1,9 +1,9 @@
-# swiftmq-plugin
+# speedmq-plugin
 
-Reference implementations of SwiftMQ **external-process plugins (sidecar)** — five languages,
+Reference implementations of SpeedMQ **external-process plugins (sidecar)** — five languages,
 **zero third-party dependencies**, all verified end to end.
 
-> Purpose: extend [SwiftMQ](https://github.com/houzch/swiftmq) with new protocol capabilities
+> Purpose: extend [SpeedMQ](https://github.com/houzch/speedmq) with new protocol capabilities
 > in **any language**, without forking or rebuilding the broker.
 > Every example goes through the full loop: **handshake → authentication → core session bridge
 > (queues/publish/consume) → delivery push-back → settle → client byte-stream echo**.
@@ -20,14 +20,14 @@ English | [简体中文](README.md)
 | **Is** | Python / Node.js / PHP / Java implement the wire protocol **from scratch** (framing, handshake, heartbeat, streams, reverse calls) — read them as a protocol spec |
 | **Is** | Go uses the **official SDK** (`pkg/sidecar`) and implements just three methods — showing how short it gets when an SDK exists |
 | **Is not** | The broker itself. To run a plugin, the broker must *declare* it in its config (see below) |
-| **Is not** | A built-in kernel plugin. SwiftMQ's built-in protocols (AMQP 0-9-1 / MQTT) do not use this mechanism |
+| **Is not** | A built-in kernel plugin. SpeedMQ's built-in protocols (AMQP 0-9-1 / MQTT) do not use this mechanism |
 
 ---
 
 ## Layout
 
 ```
-swiftmq-plugin/
+speedmq-plugin/
 ├── python/sidecar_plugin.py     # Python 3 (stdlib only)
 ├── nodejs/index.js              # Node.js (stdlib only, no npm deps)
 ├── php/sidecar_plugin.php       # PHP 7.4+ (stdlib only, no composer deps)
@@ -57,7 +57,7 @@ python3 python/sidecar_plugin.py -addr 0.0.0.0:19001 -name py-sidecar -session-d
 
 ### 2. Declare the plugin on the broker side
 
-Add this to SwiftMQ's config file (`swiftmqd.json`). Note `address` uses
+Add this to SpeedMQ's config file (`speedmqd.json`). Note `address` uses
 `host.docker.internal` (the "host" hostname provided by Docker Desktop) and `spawn` is empty
 (you already started the process; the broker only dials):
 
@@ -101,9 +101,9 @@ Add this to SwiftMQ's config file (`swiftmqd.json`). Note `address` uses
 ### 3. Start the broker (container)
 
 ```bash
-docker run -d --name swiftmq -p 5672:5672 -p 15672:15672 -p 19002:19002 \
-  -v "$PWD/swiftmqd.json:/etc/swiftmq/swiftmqd.json:ro" houzch/swiftmq:1.1.01 \
-  -config /etc/swiftmq/swiftmqd.json -log-level info
+docker run -d --name speedmq -p 5672:5672 -p 15672:15672 -p 19002:19002 \
+  -v "$PWD/speedmqd.json:/etc/speedmq/speedmqd.json:ro" houzch/speedmq:1.1.01 \
+  -config /etc/speedmq/speedmqd.json -log-level info
 ```
 
 ### 4. Verify
@@ -127,13 +127,13 @@ For the broker to spawn the plugin itself (`spawn`), both the executable **and i
 exist inside the broker container:
 
 ```dockerfile
-FROM houzch/swiftmq:1.1.01
+FROM houzch/speedmq:1.1.01
 
 USER root
 # the plugin needs its language runtime; the alpine base image has none by default
 RUN apk add --no-cache python3
-COPY python/sidecar_plugin.py /opt/swiftmq-plugin/python/sidecar_plugin.py
-USER swiftmq
+COPY python/sidecar_plugin.py /opt/speedmq-plugin/python/sidecar_plugin.py
+USER speedmq
 ```
 
 Then switch the config to a loopback address plus `spawn`:
@@ -141,7 +141,7 @@ Then switch the config to a loopback address plus `spawn`:
 ```json
 "sidecar": {
   "address": "tcp://127.0.0.1:19001",
-  "spawn": ["python3", "/opt/swiftmq-plugin/python/sidecar_plugin.py",
+  "spawn": ["python3", "/opt/speedmq-plugin/python/sidecar_plugin.py",
             "-addr", "0.0.0.0:19001", "-name", "py-sidecar"],
   "protocols": [{ "name": "pyecho", "prefix": "PY",
                   "listeners": [{ "name": "pyecho", "addr": ":19002" }] }]
@@ -175,16 +175,16 @@ concurrency model and idioms:
 | Java | one reader thread per connection, one handler thread per stream | no JSON API in the JDK (example ships a tiny one); `\uXXXX` is processed even inside comments; lambdas need effectively-final captures |
 | Go | goroutines (one per stream) + SDK-internal multiplexing | **uses the official SDK, so no framing/handshake/heartbeat code**: implement just the three `sidecar.Handler` methods (`Hello` / `Call` / `Open`) |
 
-> **Why the Go example is so short**: SwiftMQ is a Go project, so it ships an official SDK —
-> [`pkg/sidecar`](https://github.com/houzch/swiftmq/tree/master/pkg/sidecar) (the server role).
+> **Why the Go example is so short**: SpeedMQ is a Go project, so it ships an official SDK —
+> [`pkg/sidecar`](https://github.com/houzch/speedmq/tree/master/pkg/sidecar) (the server role).
 > The other languages have no SDK, which is why those four implement the wire protocol themselves —
 > and precisely why they are the most readable *protocol spec*.
 >
-> The Go example needs the swiftmq module (`go mod tidy` fetches `github.com/houzch/swiftmq`).
+> The Go example needs the speedmq module (`go mod tidy` fetches `github.com/houzch/speedmq`).
 > Offline or behind a proxy, point it at a local clone with `go work` or `replace`:
 >
 > ```
-> go mod edit -replace github.com/houzch/swiftmq=<path-to-local-swiftmq>
+> go mod edit -replace github.com/houzch/speedmq=<path-to-local-speedmq>
 > ```
 
 ---
@@ -279,11 +279,11 @@ len = 1 + len(payload); max frame 16 MiB.
 ## Verified, not "looks runnable"
 
 These paths were actually executed on a developer machine (see the header comments in each file and the
-[upstream per-language docs](https://github.com/houzch/swiftmq/tree/master/docs)):
+[upstream per-language docs](https://github.com/houzch/speedmq/tree/master/docs)):
 
 ```
 Environment: Windows + Python 3.12 / Node 24 / PHP 7.4 / JDK 25 / Go 1.24
-Broker: SwiftMQ 1.1.01 in Docker; plugin: host process (broker dials host.docker.internal)
+Broker: SpeedMQ 1.1.01 in Docker; plugin: host process (broker dials host.docker.internal)
 
 /api/plugins → <name> state=enabled
 client         printf 'PYhello\n' | nc 127.0.0.1 <broker port>   → echoes PYhello
@@ -312,8 +312,8 @@ plugin log     握手完成 → 认证通过 user=guest → session 演示完成
 
 ## Relation to upstream / further reading
 
-- **SwiftMQ broker**: <https://github.com/houzch/swiftmq> — the authoritative protocol definition lives in `pkg/sidecar`.
-- **Plugin SDK** (Go): `github.com/houzch/swiftmq/pkg/sidecar` (plugin-side server) + `pkg/plugin` (plugin contract).
+- **SpeedMQ broker**: <https://github.com/houzch/speedmq> — the authoritative protocol definition lives in `pkg/sidecar`.
+- **Plugin SDK** (Go): `github.com/houzch/speedmq/pkg/sidecar` (plugin-side server) + `pkg/plugin` (plugin contract).
   This repo's [`go/main.go`](go/main.go) is written with it.
 - **Per-language guides** (upstream `docs/`): `plugin-development.md` (overview + protocol spec),
   `plugin-development-python.md` / `-nodejs.md` / `-php.md` / `-java.md`.

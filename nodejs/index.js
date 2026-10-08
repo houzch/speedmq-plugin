@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// SwiftMQ 外部进程插件（sidecar）示例 —— Node.js 实现（仅标准库，无 npm 依赖）。
+// SpeedMQ 外部进程插件（sidecar）示例 —— Node.js 实现（仅标准库，无 npm 依赖）。
 //
 // 它实现 sidecar 线协议的插件侧（对应 `pkg/sidecar` 里的 Server 角色）：
 // 内核是客户端、本进程是服务端；只监听一个本机地址，等内核来连。
@@ -14,7 +14,7 @@
 // 用法：
 //   node index.js --addr 0.0.0.0:19011 --name node-sidecar --session-demo
 //
-// 配套文档：swiftmq/docs/plugin-development-nodejs.md
+// 配套文档：speedmq/docs/plugin-development-nodejs.md
 'use strict'
 
 const net = require('net')

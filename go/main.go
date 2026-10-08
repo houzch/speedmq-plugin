@@ -1,9 +1,9 @@
-// Command sidecar-plugin 是 SwiftMQ 外部进程插件（sidecar）示例 —— **Go 实现**。
+// Command sidecar-plugin 是 SpeedMQ 外部进程插件（sidecar）示例 —— **Go 实现**。
 //
 // 行为与同系列其它语言示例（python / nodejs / php / java）**一致**：
 // 握手 → 认证 → 内核语义桥（声明队列 / 发布 / 消费 / 结算）→ 客户端字节流回显。
 //
-// 唯一的差别是：Go 有官方 SDK（github.com/houzch/swiftmq/pkg/sidecar），
+// 唯一的差别是：Go 有官方 SDK（github.com/houzch/speedmq/pkg/sidecar），
 // 分帧、握手、心跳、多路复用都由它实现，插件作者只需要实现 Handler 的三个方法；
 // 其它语言没有 SDK，所以那几个示例各自手写了线协议（见同系列对应目录）。
 //
@@ -11,7 +11,7 @@
 //
 //	go run . -addr tcp://0.0.0.0:19041 -name go-sidecar -session-demo
 //
-// 配套文档：swiftmq/docs/plugin-development.md（心智模型 / 配置字段 / 线协议总表）。
+// 配套文档：speedmq/docs/plugin-development.md（心智模型 / 配置字段 / 线协议总表）。
 package main
 
 import (
@@ -27,8 +27,8 @@ import (
 	"sync/atomic"
 	"syscall"
 
-	"github.com/houzch/swiftmq/pkg/plugin"
-	"github.com/houzch/swiftmq/pkg/sidecar"
+	"github.com/houzch/speedmq/pkg/plugin"
+	"github.com/houzch/speedmq/pkg/sidecar"
 )
 
 const (
